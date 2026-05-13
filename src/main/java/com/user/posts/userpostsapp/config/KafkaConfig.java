@@ -1,0 +1,128 @@
+package com.user.posts.userpostsapp.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.user.posts.userpostsapp.dto.UserPostDto;
+import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.core.*;
+import org.springframework.kafka.listener.ContainerProperties;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+public class KafkaConfig {
+
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
+    public static final String USER_POSTS_TOPIC = "user-posts";
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Bean
+    public NewTopic userPostsTopic() {
+        return TopicBuilder.name(USER_POSTS_TOPIC)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    // ── Serializers ──────────────────────────────────────────────────────────
+
+    /**
+     * Pure Jackson serializer — no Spring Kafka wrapper, no deprecations.
+     * Converts UserPostDto → JSON bytes.
+     */
+    private Serializer<UserPostDto> userPostSerializer() {
+        return (topic, data) -> {
+            try {
+                return objectMapper.writeValueAsBytes(data);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to serialize UserPostDto", e);
+            }
+        };
+    }
+
+    /**
+     * Pure Jackson deserializer — no Spring Kafka wrapper, no deprecations.
+     * Converts JSON bytes → UserPostDto.
+     */
+    private Deserializer<UserPostDto> userPostDeserializer() {
+        return (topic, data) -> {
+            try {
+                return objectMapper.readValue(data, UserPostDto.class);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize UserPostDto", e);
+            }
+        };
+    }
+
+    // ── Producer ─────────────────────────────────────────────────────────────
+
+    @Bean
+    public ProducerFactory<String, UserPostDto> producerFactory() {
+        Map<String, Object> config = new HashMap<>();
+
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ProducerConfig.ACKS_CONFIG, "all");
+        config.put(ProducerConfig.RETRIES_CONFIG, 3);
+        config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        config.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+        config.put(ProducerConfig.LINGER_MS_CONFIG, 10);
+        config.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
+
+        return new DefaultKafkaProducerFactory<>(
+                config,
+                new StringSerializer(),
+                userPostSerializer()    // ← plain Jackson, no Spring wrapper
+        );
+    }
+
+    @Bean
+    public KafkaTemplate<String, UserPostDto> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
+    }
+
+    // ── Consumer ─────────────────────────────────────────────────────────────
+
+    @Bean
+    public ConsumerFactory<String, UserPostDto> consumerFactory() {
+        Map<String, Object> config = new HashMap<>();
+
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "user-posts-consumer-group");
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
+
+        // No KEY_DESERIALIZER_CLASS_CONFIG / VALUE_DESERIALIZER_CLASS_CONFIG needed
+        // when passing instances directly to the factory constructor below
+
+        return new DefaultKafkaConsumerFactory<>(
+                config,
+                new StringDeserializer(),
+                userPostDeserializer()  // ← plain Jackson, no Spring wrapper
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, UserPostDto>
+    kafkaListenerContainerFactory() {
+
+        ConcurrentKafkaListenerContainerFactory<String, UserPostDto> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        factory.setConcurrency(1);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+
+        return factory;
+    }
+}
