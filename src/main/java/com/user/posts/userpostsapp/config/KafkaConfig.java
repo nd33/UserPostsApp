@@ -2,10 +2,13 @@ package com.user.posts.userpostsapp.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.user.posts.userpostsapp.dto.UserPostDto;
+import com.user.posts.userpostsapp.service.DataMergerService;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +27,8 @@ public class KafkaConfig {
     private String bootstrapServers;
 
     public static final String USER_POSTS_TOPIC = "user-posts";
+
+    private static final Logger log = LoggerFactory.getLogger(KafkaConfig.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -44,8 +49,11 @@ public class KafkaConfig {
     private Serializer<UserPostDto> userPostSerializer() {
         return (topic, data) -> {
             try {
-                return objectMapper.writeValueAsBytes(data);
+                byte[] bytes = objectMapper.writeValueAsBytes(data);
+                log.debug("Serialized UserPostDto {} to {} bytes", data.getPostId(), bytes.length);
+                return bytes;
             } catch (Exception e) {
+                log.error("Failed to serialize UserPostDto: {}", data, e);
                 throw new RuntimeException("Failed to serialize UserPostDto", e);
             }
         };
@@ -58,8 +66,11 @@ public class KafkaConfig {
     private Deserializer<UserPostDto> userPostDeserializer() {
         return (topic, data) -> {
             try {
-                return objectMapper.readValue(data, UserPostDto.class);
+                UserPostDto dto = objectMapper.readValue(data, UserPostDto.class);
+                log.debug("Deserialized {} bytes to UserPostDto postId={}", data.length, dto.getPostId());
+                return dto;
             } catch (Exception e) {
+                log.error("Failed to deserialize {} bytes", data.length, e);
                 throw new RuntimeException("Failed to deserialize UserPostDto", e);
             }
         };

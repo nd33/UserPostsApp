@@ -30,6 +30,14 @@ public class PostDto {
     public String getBody() { return body; }
     public void setBody(String body) { this.body = body; }
 
+    /**
+     * Check if title length exceeds 200 characters.
+     * Assignment requirement: Filter all posts with titles longer than 200 characters.
+     */
+    public boolean hasTitleLongerThan(int length) {
+        return title != null && title.length() > length;
+    }
+
     @Override
     public String toString() {
         return String.format("PostDto{id=%d, userId=%d, title='%s'}", id, userId, title);
