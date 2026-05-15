@@ -31,11 +31,11 @@ public class PostDto {
     public void setBody(String body) { this.body = body; }
 
     /**
-     * Check if title length exceeds 200 characters.
-     * Assignment requirement: Filter all posts with titles longer than 200 characters.
+     * Check if title length exceeds int length characters.
+     * Assignment requirement: Filter OUT all posts with titles longer than 200 characters.
      */
-    public boolean hasTitleLongerThan(int length) {
-        return title != null && title.length() > length;
+    public boolean hasTitleShorterThan(int length) {
+        return title != null && title.length() < length;
     }
 
     @Override

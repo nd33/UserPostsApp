@@ -58,9 +58,9 @@ public class DataMergerService {
         // Filter posts with title > 200 characters and merge with user data
         List<UserPostDto> mergedPosts = posts.stream()
                 .filter(post -> {
-                    boolean keep = post.hasTitleLongerThan(200);
+                    boolean keep = post.hasTitleShorterThan(200);
                     if (keep) {
-                        log.debug("Post {} title length {} > 200, keeping",
+                        log.debug("Post {} title length {} < 200, keeping",
                                 post.getId(), post.getTitle().length());
                     }
                     return keep;
