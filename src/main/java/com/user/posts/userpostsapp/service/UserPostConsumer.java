@@ -38,7 +38,7 @@ public class UserPostConsumer {
 
         try {
             // Check if post already exists (idempotency)
-            if (userPostRepository.existsByPostId(userPost.getPostId())) {
+            if (userPostRepository.existsById(userPost.getPostId())) {
                 log.warn("Post {} already exists in database, skipping", userPost.getPostId());
                 acknowledgment.acknowledge();
                 return;

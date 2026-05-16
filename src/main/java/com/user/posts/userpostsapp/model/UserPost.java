@@ -4,21 +4,13 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Simplified JPA Entity for storing merged user-post data.
+ * JPA Entity for storing merged user-post data.
  */
 @Entity
-@Table(name = "user_posts",
-        indexes = {
-                @Index(name = "idx_post_id", columnList = "post_id"),  // For faster lookups
-                @Index(name = "idx_user_email", columnList = "user_email")  // For potential future queries
-        },
-        uniqueConstraints = @UniqueConstraint(columnNames = "post_id"))
+@Table(name = "user_posts")
 public class UserPost {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(name = "post_id", nullable = false, unique = true)
     private Long postId;
 
@@ -54,7 +46,7 @@ public class UserPost {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
+    // Getters
     public Long getPostId() { return postId; }
     public String getUserName() { return userName; }
     public String getUserEmail() { return userEmail; }
@@ -63,10 +55,6 @@ public class UserPost {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
-    protected void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
@@ -74,7 +62,7 @@ public class UserPost {
 
     @Override
     public String toString() {
-        return String.format("UserPost{postId=%d, userName='%s', userEmail='%s', title='%s'}",
-                postId, userName, userEmail, postTitle.substring(0, Math.min(20, postTitle.length())));
+        return String.format("UserPost{postId=%d, userName='%s', userEmail='%s'}",
+                postId, userName, userEmail);
     }
 }
