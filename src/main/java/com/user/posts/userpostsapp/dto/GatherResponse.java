@@ -9,7 +9,6 @@ import java.util.UUID;
  *
  * Returns 202 Accepted with tracking information.
  *
- * Why UUID for trackingId?
  * - Universally unique (no collisions across distributed systems)
  * - Can be used for logging correlation
  * - In production, you'd have GET /status/{trackingId} endpoint

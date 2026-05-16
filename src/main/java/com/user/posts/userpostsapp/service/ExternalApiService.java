@@ -44,7 +44,7 @@ public class ExternalApiService {
     /**
      * Fetch all users from external API asynchronously.
      *
-     * Returns Mono<List<ExternalUserDto>> - a promise that will complete
+     * Returns Mono<List<UserDto>> - a promise that will complete
      * when the HTTP response arrives.
      *
      * The .retrieve() method sends the request and returns a ResponseSpec.
@@ -69,6 +69,14 @@ public class ExternalApiService {
 
     /**
      * Fetch all posts from external API asynchronously.
+     *
+     * Returns Mono<List<PostDto>> - a promise that will complete
+     * when the HTTP response arrives.
+     *
+     * The .retrieve() method sends the request and returns a ResponseSpec.
+     * .bodyToMono() converts the response body to a Mono.
+     *
+     * Error handling: onStatus captures 4xx/5xx responses.
      */
     public Mono<List<PostDto>> fetchPosts() {
         log.info("Fetching posts from external API");

@@ -36,16 +36,13 @@ public class UserPostService {
     private DataMergerService dataMergerService;
 
     @Autowired
-    private KafkaTemplate<String, UserPostDto> kafkaTemplate;  // Now sends UserPostDto directly!
+    private KafkaTemplate<String, UserPostDto> kafkaTemplate;
 
     @Autowired
     private UserPostRepository userPostRepository;
 
     /**
      * Gather users and posts asynchronously, merge, and send to Kafka.
-     *
-     * Since KafkaTemplate now works with UserPostDto directly (thanks to your
-     * pure Jackson serializer), we can send the object without manual conversion.
      */
     @Async
     public CompletableFuture<Void> gatherAndSendUserPosts() {
@@ -69,11 +66,9 @@ public class UserPostService {
             // Send each post to Kafka - kafkaTemplate serializes UserPostDto to JSON automatically!
             for (UserPostDto userPost : mergedData) {
                 try {
-                    // Send with null key (will be distributed across partitions)
-                    // Or use postId as key for consistent partitioning
                     kafkaTemplate.send(KafkaConfig.USER_POSTS_TOPIC,
-                            String.valueOf(userPost.getPostId()),  // key (optional)
-                            userPost);  // value
+                            String.valueOf(userPost.getPostId()),
+                            userPost);
                     log.debug("Sent post {} to Kafka", userPost.getPostId());
                 } catch (Exception e) {
                     log.error("Failed to send post {} to Kafka", userPost.getPostId(), e);

@@ -10,13 +10,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * Service for merging users and posts data.
  *
  * Assignment requirements:
- * 1. Filter posts with title longer than 200 characters
+ * 1. Filter OUT posts with title longer than 200 characters
  * 2. Merge user information into posts (userName, userEmail)
  * 3. Each post should contain user info within it
  */
@@ -30,7 +31,7 @@ public class DataMergerService {
      *
      * Algorithm:
      * 1. Convert users list to Map<userId, ExternalUserDto> for O(1) lookup
-     * 2. Filter posts by title length (keep if > 200 chars)
+     * 2. Filter posts by title length (keep if < 200 chars)
      * 3. For each filtered post, find user from map and merge
      * 4. Create UserPostDto with required fields
      *
@@ -55,7 +56,7 @@ public class DataMergerService {
 
         log.debug("Created user map with {} entries", userMap.size());
 
-        // Filter posts with title > 200 characters and merge with user data
+        // Filter OUT posts with title > 200 characters and merge with user data
         List<UserPostDto> mergedPosts = posts.stream()
                 .filter(post -> {
                     boolean keep = post.hasTitleShorterThan(200);
@@ -75,7 +76,7 @@ public class DataMergerService {
 
                     return new UserPostDto(post.getId(), user.getName(), user.getEmail(), post.getTitle(), post.getBody());
                 })
-                .filter(dto -> dto != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         log.info("Merged {} posts (filtered from {})", mergedPosts.size(), posts.size());

@@ -17,14 +17,6 @@ import java.util.Map;
 
 /**
  * Global exception handler for REST controllers.
- *
- * How @RestControllerAdvice Works:
- * 1. Spring scans for classes with @ControllerAdvice at startup
- * 2. Creates an AOP proxy that wraps all controllers
- * 3. When any controller throws an exception, Spring checks registered handlers
- * 4. Calls the method with matching exception type
- * 5. Return value becomes the HTTP response
- *
  * This centralizes error handling and ensures consistent JSON error responses.
  */
 @RestControllerAdvice
@@ -127,7 +119,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle generic runtime exceptions (catch-all).
+     * Handle generic runtime exceptions.
      */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {

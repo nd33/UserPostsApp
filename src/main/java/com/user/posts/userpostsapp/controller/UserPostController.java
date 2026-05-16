@@ -33,13 +33,7 @@ public class UserPostController {
      * POST /user-posts/gather
      *
      * Trigger asynchronous gathering of users and posts from external APIs.
-     *
-     * Why async? The external API calls could take 1-2 seconds.
-     * Instead of blocking the HTTP thread, we return immediately
-     * with a tracking ID, and processing continues in background.
-     *
-     * HTTP Response: 202 Accepted (not 200 OK) - standard for async operations
-     *
+     * HTTP Response: 202 Accepted
      * @return GatherResponse with tracking ID and status
      */
     @PostMapping("/gather")

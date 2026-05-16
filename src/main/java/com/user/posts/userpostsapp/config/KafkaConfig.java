@@ -2,7 +2,6 @@ package com.user.posts.userpostsapp.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.user.posts.userpostsapp.dto.UserPostDto;
-import com.user.posts.userpostsapp.service.DataMergerService;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -40,10 +39,7 @@ public class KafkaConfig {
                 .build();
     }
 
-    // ── Serializers ──────────────────────────────────────────────────────────
-
     /**
-     * Pure Jackson serializer — no Spring Kafka wrapper, no deprecations.
      * Converts UserPostDto → JSON bytes.
      */
     private Serializer<UserPostDto> userPostSerializer() {
@@ -60,7 +56,6 @@ public class KafkaConfig {
     }
 
     /**
-     * Pure Jackson deserializer — no Spring Kafka wrapper, no deprecations.
      * Converts JSON bytes → UserPostDto.
      */
     private Deserializer<UserPostDto> userPostDeserializer() {
@@ -76,7 +71,6 @@ public class KafkaConfig {
         };
     }
 
-    // ── Producer ─────────────────────────────────────────────────────────────
 
     @Bean
     public ProducerFactory<String, UserPostDto> producerFactory() {
@@ -93,7 +87,7 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(
                 config,
                 new StringSerializer(),
-                userPostSerializer()    // ← plain Jackson, no Spring wrapper
+                userPostSerializer()
         );
     }
 
@@ -101,8 +95,6 @@ public class KafkaConfig {
     public KafkaTemplate<String, UserPostDto> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
-
-    // ── Consumer ─────────────────────────────────────────────────────────────
 
     @Bean
     public ConsumerFactory<String, UserPostDto> consumerFactory() {
@@ -114,13 +106,10 @@ public class KafkaConfig {
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         config.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
 
-        // No KEY_DESERIALIZER_CLASS_CONFIG / VALUE_DESERIALIZER_CLASS_CONFIG needed
-        // when passing instances directly to the factory constructor below
-
         return new DefaultKafkaConsumerFactory<>(
                 config,
                 new StringDeserializer(),
-                userPostDeserializer()  // ← plain Jackson, no Spring wrapper
+                userPostDeserializer()
         );
     }
 

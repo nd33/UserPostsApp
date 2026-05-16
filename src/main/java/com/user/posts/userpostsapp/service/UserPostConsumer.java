@@ -13,9 +13,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * Kafka consumer that persists UserPostDto to database.
- *
- * Now consumes UserPostDto directly because your KafkaConfig
- * uses the pure Jackson deserializer!
  */
 @Service
 public class UserPostConsumer {
