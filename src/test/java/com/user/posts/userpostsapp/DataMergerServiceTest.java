@@ -47,9 +47,9 @@ class DataMergerServiceTest {
                 List.of(shortTitlePost, longTitlePost)
         );
 
-        // Only the post with title > 200 characters should be included
+        // Only the post with title < 200 characters should be included
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getPostId()).isEqualTo(2L);
+        assertThat(result.get(0).getPostId()).isEqualTo(1L);
         assertThat(result.get(0).getUserName()).isEqualTo("John Doe");
     }
 }

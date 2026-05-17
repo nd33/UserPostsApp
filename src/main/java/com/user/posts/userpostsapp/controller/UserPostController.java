@@ -66,12 +66,6 @@ public class UserPostController {
      * - @Positive - Ensures positive number
      * - @Max(100) - Limit page size to prevent abuse (100 items max)
      *
-     * Spring automatically:
-     * 1. Extracts 'page' and 'size' from query string
-     * 2. Validates them with @Min/@Max annotations
-     * 3. Converts to int (automatic type conversion)
-     * 4. If validation fails, throws ConstraintViolationException (handled by global handler)
-     *
      * @param page Page number (0-indexed, default 0)
      * @param size Items per page (default 20, max 100)
      * @return Paginated response with content and metadata
